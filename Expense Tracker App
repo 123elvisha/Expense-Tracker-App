@@ -1,0 +1,118 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+
+class Expense {
+    String category;
+    String description;
+    double amount;
+    LocalDate date;
+
+    public Expense(String category, String description, double amount, LocalDate date) {
+        this.category = category;
+        this.description = description;
+        this.amount = amount;
+        this.date = date;
+    }
+
+    public String toString() {
+        return "Date: " + date + ", Category: " + category + ", Description: " + description + ", Amount: Rs." + amount;
+    }
+}
+
+public class ExpenseTrackerApp extends JFrame implements ActionListener {
+    private JTextField descField, amountField;
+    private JComboBox<String> categoryBox, filterBox;
+    private JTextArea reportArea;
+    private ArrayList<Expense> expenseList = new ArrayList<>();
+
+    public ExpenseTrackerApp() {
+        setTitle("Expense Tracker");
+        setSize(600, 600);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new FlowLayout());
+
+        add(new JLabel("Description:"));
+        descField = new JTextField(20);
+        add(descField);
+
+        add(new JLabel("Amount (Rs.):"));
+        amountField = new JTextField(10);
+        add(amountField);
+
+        add(new JLabel("Category:"));
+        categoryBox = new JComboBox<>(new String[]{"Food", "Transport", "Bills", "Shopping", "Other"});
+        add(categoryBox);
+
+        JButton addButton = new JButton("Add Expense");
+        addButton.addActionListener(this);
+        add(addButton);
+
+        JButton reportButton = new JButton("Show Report");
+        reportButton.addActionListener(e -> showReport());
+        add(reportButton);
+
+        add(new JLabel("Filter by Category:"));
+        filterBox = new JComboBox<>(new String[]{"All", "Food", "Transport", "Bills", "Shopping", "Other"});
+        add(filterBox);
+
+        JButton filterButton = new JButton("Filter");
+        filterButton.addActionListener(e -> showFilteredReport((String) filterBox.getSelectedItem()));
+        add(filterButton);
+
+        reportArea = new JTextArea(20, 50);
+        reportArea.setEditable(false);
+        add(new JScrollPane(reportArea));
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            String desc = descField.getText();
+            double amount = Double.parseDouble(amountField.getText());
+            String category = (String) categoryBox.getSelectedItem();
+
+            expenseList.add(new Expense(category, desc, amount, LocalDate.now()));
+
+            descField.setText("");
+            amountField.setText("");
+            categoryBox.setSelectedIndex(0);
+
+            JOptionPane.showMessageDialog(this, "Expense added successfully!");
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid amount.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showReport() {
+        StringBuilder report = new StringBuilder("--- Expense Report ---\n\n");
+        double total = 0;
+        for (Expense exp : expenseList) {
+            report.append(exp).append("\n");
+            total += exp.amount;
+        }
+        report.append("\nTotal Expense: Rs.").append(total);
+        reportArea.setText(report.toString());
+    }
+
+    private void showFilteredReport(String categoryFilter) {
+        StringBuilder report = new StringBuilder("--- Filtered Expense Report ---\n\n");
+        double total = 0;
+        for (Expense exp : expenseList) {
+            if (categoryFilter.equals("All") || exp.category.equals(categoryFilter)) {
+                report.append(exp).append("\n");
+                total += exp.amount;
+            }
+        }
+        report.append("\nTotal for ").append(categoryFilter).append(": Rs.").append(total);
+        reportArea.setText(report.toString());
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new ExpenseTrackerApp());
+    }
+}
